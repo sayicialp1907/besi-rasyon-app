@@ -63,10 +63,28 @@ with col_hayvan:
         canli_agirlik = st.number_input("Canlı Ağırlık (kg)", value=300, step=10)
         hedef_agirlik = st.number_input("Hedef Besi Sonu Ağırlığı (kg)", value=550, step=10)
         adg = st.number_input("Günlük Canlı Ağırlık Artışı (kg/gün)", value=1.600, step=0.1)
+        kondisyon = st.slider("Kondisyon Skoru", 1.0, 5.0, 3.0, 0.5)
+
+    with st.expander("Çevre ve Barınak Koşulları", expanded=False):
+        sicaklik = st.number_input("Mevcut Sıcaklık (°C)", value=18.0)
+        gecmis_sicaklik = st.number_input("Geçen Ayın Ort. Sıcaklığı (°C)", value=15.0)
+        camur = st.selectbox("Zemindeki Çamur Miktarı", ["Yok", "Bileğe Kadar", "Dize Kadar"])
+        deri_durumu = st.selectbox("Deri ve Kıl Durumu", ["Kuru", "Islak / Çamurlu"])
+        mera = st.checkbox("Merada Otluyor mu?", value=False)
 
 ihtiyac_km = round((canli_agirlik * 0.015) + (adg * 2.3) + 0.02, 1)
 ihtiyac_hp = round((canli_agirlik * 1.5) + (adg * 240), 0)
 ihtiyac_me = round((canli_agirlik * 0.04) + (adg * 6.1), 2)
+
+# Çevre koşullarının enerjiye (ME) etkisi 
+if camur == "Dize Kadar":
+    ihtiyac_me = round(ihtiyac_me * 1.10, 2) # %10 enerji artışı
+elif camur == "Bileğe Kadar":
+    ihtiyac_me = round(ihtiyac_me * 1.05, 2) # %5 enerji artışı
+
+if deri_durumu == "Islak / Çamurlu":
+    ihtiyac_me = round(ihtiyac_me * 1.05, 2) # %5 ekstra enerji ihtiyacı
+    
 ihtiyac_ca = round((canli_agirlik * 0.08) + (adg * 10.6), 1)
 ihtiyac_p = round((canli_agirlik * 0.04) + (adg * 6.25), 1)
 ihtiyac_ndf_min = round(ihtiyac_km * 0.28, 1)
