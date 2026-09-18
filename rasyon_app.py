@@ -14,14 +14,8 @@ with col_yem:
     st.subheader("🌾 Verilecek Yemler")
     
     # Başlangıç Yem Listesi (Excel'deki varsayılanlar)
-    yem_verileri = {
-        "Yem Adı": ["ARPA SAMANI", "MISIR (Kırılmış)", "ŞEKER PANCARI POSASI", "SIĞIR BESİ/SÜT YEMİ"],
-        "Miktar (kg)": [3.10, 3.17, 5.32, 1.97],
-        "Fiyat (TL/kg)": [2.00, 7.80, 2.50, 8.50],
-        "Min (kg)": [0.0, 0.0, 0.0, 0.0],
-        "Maks (kg)": [5.0, 10.0, 10.0, 5.0]
-    }
-    df_yem = pd.DataFrame(yem_verileri)
+    # Yem veritabanını dış dosyadan okuyoruz
+df_yem = pd.read_csv("yem_veritabani.csv")
     
     # Düzenlenebilir Tablo (Excel gibi hücreye tıklayıp değiştirilebilir)
     duzenlenen_yemler = st.data_editor(df_yem, num_rows="dynamic", use_container_width=True)
