@@ -13,9 +13,8 @@ col_yem, col_denge, col_hayvan = st.columns([1.5, 1.3, 1.2])
 with col_yem:
     st.subheader("🌾 Verilecek Yemler")
     
-    # Başlangıç Yem Listesi (Excel'deki varsayılanlar)
     # Yem veritabanını dış dosyadan okuyoruz
-df_yem = pd.read_csv("yem_veritabani.csv")
+    df_yem = pd.read_csv("yem_veritabani.csv")
     
     # Düzenlenebilir Tablo (Excel gibi hücreye tıklayıp değiştirilebilir)
     duzenlenen_yemler = st.data_editor(df_yem, num_rows="dynamic", use_container_width=True)
