@@ -56,31 +56,21 @@ col_yem, col_denge, col_hayvan = st.columns([1.5, 1.3, 1.2])
 
 with col_hayvan:
     st.subheader("🐂 Hayvan & Çevre Verileri")
-    with st.expander("Hayvan Tanımı", expanded=True):
-            hayvan_tipi = st.selectbox("Hayvanın Tipi", ["Besi Sığırı", "Buzağı", "Damızlık Boğa"])
+with st.expander("Hayvan Tanımı", expanded=True):
+        hayvan_tipi = st.selectbox("Hayvanın Tipi", ["Besi Sığırı", "Buzağı", "Damızlık Boğa"])
         irk = st.selectbox("Irkı", [
-                "Siyah Alaca (Holstein)", 
-                "Simental (Flekvi)", 
-                "Montofon (Esmer)", 
-                "Yerli Kara", 
-                "Angus", 
-                "Şarole (Charolais)", 
-                "Limuzin", 
-                "Hereford", 
-                "Belçika Mavisi",
-                "Doğu Anadolu Kırmızısı (DAK)",
-                "Boz Irk",
-                "Güney Anadolu Kırmızısı (GAK)",
-                "Melez (Kırma)"
-            ])
-            yas = st.number_input("Yaşı (ay)", value=16, min_value=1)
-            kondisyon = st.slider("Kondisyon Skoru", 1.0, 5.0, 5.0, 0.5)
-            canli_agirlik = st.number_input("Canlı ağırlığı (kg)", value=300, step=10)
-            hedef_agirlik = st.number_input("Hedef besi sonu ağırlığı (kg)", value=350, step=10)
-            adg = st.number_input("İstenilen canlı ağırlık artışı (kg/gün)", value=1.600, step=0.1)
-            hedef_yaglilik = st.selectbox("Hedef yağlılık düzeyi", ["Çok az yağlı, % 25 yağ", "Orta yağlı, % 28 yağ", "Yağlı, % 32 yağ"])
-
-    with st.expander("Çevre ve Barınak Koşulları", expanded=False):
+            "Siyah Alaca (Holstein)", "Simental (Flekvi)", "Montofon (Esmer)", 
+            "Yerli Kara", "Angus", "Şarole (Charolais)", "Limuzin", "Hereford", 
+            "Belçika Mavisi", "Doğu Anadolu Kırmızısı (DAK)", "Boz Irk", 
+            "Güney Anadolu Kırmızısı (GAK)", "Melez (Kırma)"
+        ])
+        yas = st.number_input("Yaşı (ay)", value=16, min_value=1)
+        kondisyon = st.slider("Kondisyon Skoru", 1.0, 5.0, 5.0, 0.5)
+        canli_agirlik = st.number_input("Canlı ağırlığı (kg)", value=300, step=10)
+        hedef_agirlik = st.number_input("Hedef besi sonu ağırlığı (kg)", value=350, step=10)
+        adg = st.number_input("İstenilen canlı ağırlık artışı (kg/gün)", value=1.600, step=0.1)
+        hedef_yaglilik = st.selectbox("Hedef yağlılık düzeyi", ["Çok az yağlı, % 25 yağ", "Orta yağlı, % 28 yağ", "Yağlı, % 32 yağ"])
+ with st.expander("Çevre ve Barınak Koşulları", expanded=False):
         sicaklik = st.number_input("Mevcut Sıcaklık (°C)", value=18.0)
         gecmis_sicaklik = st.number_input("Geçen Ayın Ort. Sıcaklığı (°C)", value=15.0)
         camur = st.selectbox("Zemindeki Çamur Miktarı", ["Yok", "Bileğe Kadar", "Dize Kadar"])
