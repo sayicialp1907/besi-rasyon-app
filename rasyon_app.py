@@ -102,8 +102,8 @@ def create_pdf(h_tipi, h_irk, h_kg, h_adg, maliyet, yem_df, r_ca, r_p, r_ndf, r_
 # --- 4. GÖRSEL VE BAŞLIK ---
 col_logo, col_metin = st.columns([1, 5])
 with col_logo:
-    # Orijinal Streamlit resim ekleme komutu (Hatasız)
-    st.image("https://upload.wikimedia.org/wikipedia/commons/0/0c/Cow_female_black_white.jpg", use_column_width=True)
+    # ÇÖZÜM: HTML kullanarak görseli kullanıcı tarayıcısına yükletiyoruz, Python'u yormuyoruz.
+    st.markdown('<img src="https://upload.wikimedia.org/wikipedia/commons/0/0c/Cow_female_black_white.jpg" style="width:100%; border-radius:10px;">', unsafe_allow_html=True)
 with col_metin:
     st.title("🐄 Veteriner Klinik Rasyon Modülü")
     st.info("Bu sistem, hayvan sağlığını ve metabolik sınırları (NDF, Ca/P) koruyarak en düşük maliyetli rasyonu otomatik hesaplar.")
