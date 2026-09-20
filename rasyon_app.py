@@ -40,7 +40,7 @@ df_yem_ham = pd.read_csv("yem_veritabani.csv")
 df_yem_ham['min_kg'] = 0.0
 df_yem_ham['maks_kg'] = 15.0
 
-# --- 3. YARDIMCI FONKSİYONLAR ---
+# --- 3. YARDIMCI FONKSİYONLAR VE PDF MOTORU ---
 def tr2eng(text):
     chars = {'ı':'i', 'ş':'s', 'ğ':'g', 'ç':'c', 'ö':'o', 'ü':'u', 'İ':'I', 'Ş':'S', 'Ğ':'G', 'Ç':'C', 'Ö':'O', 'Ü':'U'}
     for k, v in chars.items(): text = str(text).replace(k, v)
@@ -65,7 +65,7 @@ def risk_analizi(r_km, r_ndf, r_ca, r_p, r_me, i_me, r_hp, i_hp):
         riskler.append("RASYON GÜVENLİ: Klinik parametreler fizyolojik sınırlar içerisindedir.")
     return riskler
 
-def create_pdf(h_tipi, h_irk, h_kg, h_adg, maliyet, yem_df, r_ca, r_p, r_ndf, r_km, riskler):
+def create_pdf(h_tipi, h_irk, h_kg, h_hedef, h_sure, h_adg, maliyet, yem_df, r_ca, r_p, r_ndf, r_km, riskler):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_fill_color(30, 58, 138); pdf.set_text_color(255, 255, 255); pdf.set_font("Arial", 'B', 15)
@@ -73,8 +73,9 @@ def create_pdf(h_tipi, h_irk, h_kg, h_adg, maliyet, yem_df, r_ca, r_p, r_ndf, r_
     pdf.ln(5)
     
     pdf.set_text_color(0, 0, 0); pdf.set_fill_color(240, 240, 240); pdf.set_font("Arial", 'B', 12)
-    pdf.cell(0, 10, txt=tr2eng("  Hayvan Bilgileri & Performans"), ln=True, fill=True); pdf.set_font("Arial", '', 11)
-    pdf.cell(0, 8, txt=tr2eng(f"  Tip/Irk: {h_tipi} - {h_irk}  |  Canli Agirlik: {h_kg} kg  |  Buyume: {h_adg} kg/gun"), ln=True)
+    pdf.cell(0, 10, txt=tr2eng("  Hayvan Bilgileri & Performans Hedefi"), ln=True, fill=True); pdf.set_font("Arial", '', 11)
+    pdf.cell(0, 8, txt=tr2eng(f"  Tip/Irk: {h_tipi} - {h_irk}  |  Mevcut: {h_kg} kg -> Hedef: {h_hedef} kg"), ln=True)
+    pdf.cell(0, 8, txt=tr2eng(f"  Besi Suresi: {h_sure} Gun  |  Hesaplanan Gunluk Artis: {h_adg} kg/gun"), ln=True)
     pdf.ln(5)
     
     pdf.set_font("Arial", 'B', 12); pdf.set_fill_color(34, 197, 94); pdf.set_text_color(255, 255, 255)
@@ -102,7 +103,6 @@ def create_pdf(h_tipi, h_irk, h_kg, h_adg, maliyet, yem_df, r_ca, r_p, r_ndf, r_
 # --- 4. GÖRSEL VE BAŞLIK ---
 col_logo, col_metin = st.columns([1, 5])
 with col_logo:
-    # ÇÖZÜM: HTML kullanarak görseli kullanıcı tarayıcısına yükletiyoruz, Python'u yormuyoruz.
     st.markdown('<img src="https://upload.wikimedia.org/wikipedia/commons/0/0c/Cow_female_black_white.jpg" style="width:100%; border-radius:10px;">', unsafe_allow_html=True)
 with col_metin:
     st.title("🐄 Veteriner Klinik Rasyon Modülü")
@@ -124,8 +124,20 @@ with col_sol:
     ])
     yas = st.number_input("Yaşı (ay)", value=16, min_value=1)
     kondisyon = st.slider("Kondisyon Skoru", 1.0, 5.0, 5.0, 0.5)
+    
+    # OTOMATİK ADG HESAPLAMA SİSTEMİ EKLENDİ
+    st.markdown("---")
     canli_agirlik = st.number_input("Mevcut Canlı Ağırlık (kg)", value=300, step=10)
-    adg = st.number_input("Hedeflenen Günlük Ağırlık Artışı (kg/gün)", value=1.600, step=0.1)
+    hedef_agirlik = st.number_input("Hedef Besi Sonu Ağırlığı (kg)", value=350, step=10)
+    besi_suresi = st.number_input("Planlanan Besi Süresi (Gün)", value=30, step=1)
+    
+    if besi_suresi > 0 and hedef_agirlik > canli_agirlik:
+        adg = round((hedef_agirlik - canli_agirlik) / besi_suresi, 3)
+    else:
+        adg = 0.0
+        
+    st.success(f"📈 **Sistemin Hesapladığı Günlük Ağırlık Artışı:** `{adg} kg/gün`")
+    st.markdown("---")
 
     st.subheader("🌤️ Adım 2: Çevre ve Barınak Koşulları")
     sicaklik = st.number_input("Mevcut Sıcaklık (°C)", value=18.0)
@@ -254,7 +266,7 @@ if btn_coz:
                 
             st.info(f"🔬 **Klinik Oranlar:**\n\nCa/P Oranı: `{round(rasyon_ca/rasyon_p, 2) if rasyon_p > 0 else 0}`\n\nKuru Maddede NDF Oranı: `% {round((rasyon_ndf/rasyon_km)*100, 1) if rasyon_km > 0 else 0}`")
             
-            pdf_bytes = create_pdf(hayvan_tipi, irk, canli_agirlik, adg, maliyet, df_secilen, rasyon_ca, rasyon_p, rasyon_ndf, rasyon_km, saptanan_riskler)
+            pdf_bytes = create_pdf(hayvan_tipi, irk, canli_agirlik, hedef_agirlik, besi_suresi, adg, maliyet, df_secilen, rasyon_ca, rasyon_p, rasyon_ndf, rasyon_km, saptanan_riskler)
             st.download_button("📥 RESMİ KLİNİK RAPORU İNDİR (PDF)", data=pdf_bytes, file_name="CUVet_Rasyon_Raporu.pdf", mime="application/pdf", type="primary", use_container_width=True)
     else:
         st.error("⚠️ Seçilen yem limitleri ile matematiksel model kurulamadı. Lütfen 'Maks Sınır' değerlerini artırın veya listeye daha fazla yem ekleyin.")
