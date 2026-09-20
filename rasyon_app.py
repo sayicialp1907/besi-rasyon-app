@@ -6,7 +6,6 @@ from fpdf import FPDF
 # --- AYARLAR VE TASARIM ---
 st.set_page_config(page_title="Veteriner Rasyon Modülü", layout="wide", initial_sidebar_state="collapsed")
 
-# Butonları ve tabloları güzelleştiren özel CSS
 st.markdown("""
     <style>
     div.stButton > button:first-child { height: 60px; font-size: 20px; font-weight: bold; border-radius: 10px; }
@@ -14,13 +13,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Türkçe karakter düzeltici
 def tr2eng(text):
     chars = {'ı':'i', 'ş':'s', 'ğ':'g', 'ç':'c', 'ö':'o', 'ü':'u', 'İ':'I', 'Ş':'S', 'Ğ':'G', 'Ç':'C', 'Ö':'O', 'Ü':'U'}
     for k, v in chars.items(): text = str(text).replace(k, v)
     return text
 
-# --- KLİNİK RİSK ANALİZİ ---
 def risk_analizi(r_km, r_ndf, r_ca, r_p, r_me, i_me, r_hp, i_hp):
     riskler = []
     ndf_orani = (r_ndf / r_km) * 100 if r_km > 0 else 0
@@ -46,7 +43,6 @@ def risk_analizi(r_km, r_ndf, r_ca, r_p, r_me, i_me, r_hp, i_hp):
         
     return riskler
 
-# --- PDF MOTORU ---
 def create_pdf(h_tipi, h_irk, h_kg, h_adg, maliyet, yem_df, r_ca, r_p, r_ndf, r_km, riskler):
     pdf = FPDF()
     pdf.add_page()
@@ -81,29 +77,23 @@ def create_pdf(h_tipi, h_irk, h_kg, h_adg, maliyet, yem_df, r_ca, r_p, r_ndf, r_
         pdf.multi_cell(0, 8, txt=tr2eng(f"- {risk}"), fill=True, border='B')
     return pdf.output(dest='S').encode('latin-1')
 
-# ==========================================
-# GÖRSEL BAŞLIK ALANI
-# ==========================================
-col_logo, col_baslik = st.columns([1, 4])
-with col_logo:
-    # Modern bir inek/çiftlik görseli
-    st.image("https://images.unsplash.com/photo-1574686588825-348a478be9fc?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80", use_column_width=True)
-with col_baslik:
-    st.markdown("<h1 class='baslik'>🐄 Veteriner Klinik Rasyon Optimizasyon Modülü</h1>", unsafe_allow_html=True)
-    st.info("Bu profesyonel araç; rumen sağlığı, asidoz riski ve maliyet hesaplamalarını gözeterek en optimum rasyonu hazırlamanızı sağlar. **Aşağıdaki 3 adımı sırasıyla uygulayın.**")
-
+st.markdown("<h1 class='baslik'>🐄 Veteriner Klinik Rasyon Optimizasyon Modülü</h1>", unsafe_allow_html=True)
+st.markdown("<img src='https://images.unsplash.com/photo-1574686588825-348a478be9fc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80' style='width:100%; height:250px; object-fit:cover; border-radius:15px; margin-bottom:15px;'>", unsafe_allow_html=True)
+st.info("Bu profesyonel araç; rumen sağlığı, asidoz riski ve maliyet hesaplamalarını gözeterek en optimum rasyonu hazırlamanızı sağlar. **Aşağıdaki 3 adımı sırasıyla uygulayın.**")
 st.markdown("---")
 
-# ==========================================
-# 1. VE 2. ADIM: GENİŞ 2 SÜTUNLU YAPI
-# ==========================================
-col_sol, col_sag = st.columns([1.2, 2]) # Sağ taraf (Tablo) bilerek daha geniş bırakıldı
+col_sol, col_sag = st.columns([1.2, 2])
 
 with col_sol:
     st.markdown("### 📝 Adım 1: Hayvan Bilgileri")
     with st.container(border=True):
         hayvan_tipi = st.selectbox("Hayvanın Tipi", ["Besi Sığırı", "Buzağı", "Damızlık Boğa"])
-        irk = st.selectbox("Irkı", ["Siyah Alaca (Holstein)", "Simental (Flekvi)", "Montofon (Esmer)", "Yerli Kara", "Angus", "Şarole (Charolais)", "Limuzin", "Hereford", "Belçika Mavisi", "Melez (Kırma)"])
+        irk = st.selectbox("Irkı", [
+            "Siyah Alaca (Holstein)", "Simental (Flekvi)", "Montofon (Esmer)", 
+            "Yerli Kara", "Angus", "Şarole (Charolais)", "Limuzin", "Hereford", 
+            "Belçika Mavisi", "Doğu Anadolu Kırmızısı (DAK)", "Boz Irk", 
+            "Güney Anadolu Kırmızısı (GAK)", "Melez (Kırma)"
+        ])
         col_yas, col_kond = st.columns(2)
         yas = col_yas.number_input("Yaşı (ay)", value=16, min_value=1)
         kondisyon = col_kond.slider("Kondisyon Skoru", 1.0, 5.0, 5.0, 0.5)
@@ -117,7 +107,6 @@ with col_sol:
 with col_sag:
     st.markdown("### 🌾 Adım 2: Yem Seçimi ve Limitler")
     
-    # Yem veritabanını oku
     try:
         df_yem_ham = pd.read_csv("yem_veritabani.csv")
         if 'min_kg' not in df_yem_ham.columns: df_yem_ham['min_kg'] = 0.0
@@ -126,20 +115,17 @@ with col_sag:
         st.error("yem_veritabani.csv dosyası bulunamadı!")
         st.stop()
         
-    # YENİ ÖZELLİK: Arama ve Seçme (Dropdown)
     st.markdown("Kullanıcının elindeki yemleri aşağıdaki listeden arayarak seçin. Seçtiğiniz yemler tabloya düşecektir.")
     tum_yemler = df_yem_ham['yem_adi'].tolist()
-    varsayilanlar = ["Misir Silaji", "Yonca Kuru Otu", "Arpa Ezmesi", "Bugday Samani"] # Tablo ilk açıldığında boş kalmasın diye
+    varsayilanlar = ["Misir Silaji", "Yonca Kuru Otu", "Arpa Ezmesi", "Bugday Samani"]
     secilen_isimler = st.multiselect("🔍 Rasyona Eklenecek Yemleri Seçiniz:", options=tum_yemler, default=[y for y in varsayilanlar if y in tum_yemler])
     
     if not secilen_isimler:
         st.warning("Lütfen listeden en az bir yem seçiniz!")
         st.stop()
         
-    # Sadece seçilen yemleri filtrele
     df_secilen = df_yem_ham[df_yem_ham['yem_adi'].isin(secilen_isimler)].copy().reset_index(drop=True)
     
-    # YENİ ÖZELLİK: Tabloda sadece gerekli sütunları göster (Karmaşayı önler)
     st.markdown("Aşağıdaki tablodan seçtiğiniz yemlerin güncel fiyatını ve hayvan başına verilebilecek **Min/Maks limitlerini (kg)** ayarlayabilirsiniz.")
     duzenlenen_gorunum = st.data_editor(
         df_secilen,
@@ -154,18 +140,14 @@ with col_sag:
         },
         hide_index=True,
         use_container_width=True,
-        num_rows="fixed" # Satır ekleme işini artık yukarıdaki multiselect yapıyor
+        num_rows="fixed"
     )
-    # Düzenlenmiş fiyat ve limitleri ana hesaplama df'ine geri aktar
     df_secilen['fiyat_tl'] = duzenlenen_gorunum['fiyat_tl']
     df_secilen['min_kg'] = duzenlenen_gorunum['min_kg']
     df_secilen['maks_kg'] = duzenlenen_gorunum['maks_kg']
 
 st.markdown("---")
 
-# ==========================================
-# HESAPLAMA MOTORU
-# ==========================================
 ihtiyac_km = round((canli_agirlik * 0.015) + (adg * 2.3) + 0.02, 1)
 ihtiyac_hp = round((canli_agirlik * 1.5) + (adg * 240), 0)
 ihtiyac_me = round((canli_agirlik * 0.04) + (adg * 6.1), 2)
@@ -176,9 +158,6 @@ ihtiyac_ca = round((canli_agirlik * 0.08) + (adg * 10.6), 1)
 ihtiyac_p = round((canli_agirlik * 0.04) + (adg * 6.25), 1)
 ihtiyac_ndf_min = round(ihtiyac_km * 0.28, 1)
 
-# ==========================================
-# 3. ADIM: ÇÖZÜCÜ VE SONUÇ EKRANI (TAM GENİŞLİK)
-# ==========================================
 st.markdown("### ⚙️ Adım 3: Optimizasyon")
 btn_coz = st.button("🚀 MATEMATİKSEL RASYONU ÇÖZ", type="primary", use_container_width=True)
 
@@ -217,7 +196,6 @@ if btn_coz:
             rasyon_ndf += km_katkisi * (df_secilen.loc[i, 'ndf_yuzde'] / 100)
             maliyet += kg * df_secilen.loc[i, 'fiyat_tl']
             
-        # Alt kısımda sonuçları geniş geniş gösterelim
         st.divider()
         col_sonuc_tablo, col_sonuc_rapor = st.columns([1.5, 1])
         
