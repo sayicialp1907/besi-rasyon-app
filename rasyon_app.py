@@ -4,7 +4,7 @@ import pulp
 from fpdf import FPDF
 
 # --- 1. AYARLAR VE AKADEMİK / PETROL MAVİSİ TASARIM (CSS) ---
-st.set_page_config(page_title="CÜ Veteriner Rasyon Optimizasyonu", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Profesyonel Rasyon Optimizasyonu", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown("""
     <style>
@@ -74,8 +74,8 @@ st.markdown("""
 st.markdown("""
     <div class="kurumsal-menu">
         <img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/Vet_symbol.svg" style="width: 80px; margin-bottom: 10px; filter: brightness(0) invert(1);">
-        <h1>CUMHURİYET ÜNİVERSİTESİ VETERİNER FAKÜLTESİ</h1>
-        <p>Büyükbaş Hayvan Besleme ve Klinik Rasyon Optimizasyon Sistemi v2.0</p>
+        <h1>VETERİNER KLİNİK RASYON SİSTEMİ</h1>
+        <p>Büyükbaş Hayvan Besleme ve Optimizasyon Modülü v2.0</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -130,7 +130,7 @@ def risk_analizi(r_km, r_ndf, r_ca, r_p, r_me, i_me, r_hp, i_hp):
 def create_pdf(h_tipi, h_irk, h_kg, h_hedef, h_sure, h_adg, maliyet, yem_df, r_ca, r_p, r_ndf, r_km, riskler):
     pdf = FPDF(); pdf.add_page()
     pdf.set_fill_color(11, 60, 73); pdf.set_text_color(255, 255, 255); pdf.set_font("Arial", 'B', 15)
-    pdf.cell(0, 15, txt=tr2eng("CUMHURIYET UNIVERSITESI - KLINIK RASYON RAPORU"), ln=True, align='C', fill=True); pdf.ln(5)
+    pdf.cell(0, 15, txt=tr2eng("KLINIK RASYON VE OPTIMIZASYON RAPORU"), ln=True, align='C', fill=True); pdf.ln(5)
     
     pdf.set_text_color(0, 0, 0); pdf.set_fill_color(240, 240, 240); pdf.set_font("Arial", 'B', 12)
     pdf.cell(0, 10, txt=tr2eng("  BÖLÜM 1: Hayvan Spesifikasyonlari ve Performans"), ln=True, fill=True); pdf.set_font("Arial", '', 11)
@@ -275,6 +275,6 @@ if btn_coz:
             st.info(f"Ca/P Oranı: {round(rasyon_ca/rasyon_p,2) if rasyon_p>0 else 0} | Kuru Maddede NDF: %{round((rasyon_ndf/rasyon_km)*100,1) if rasyon_km>0 else 0}")
             
             pdf_bytes = create_pdf(hayvan_tipi, irk, canli_agirlik, hedef_agirlik, besi_suresi, adg, maliyet, df_secilen, rasyon_ca, rasyon_p, rasyon_ndf, rasyon_km, saptanan_riskler)
-            st.download_button("PDF OLARAK İNDİR", data=pdf_bytes, file_name="CUVet_Rapor.pdf", mime="application/pdf", type="primary", use_container_width=True)
+            st.download_button("PDF OLARAK İNDİR", data=pdf_bytes, file_name="Rasyon_Raporu.pdf", mime="application/pdf", type="primary", use_container_width=True)
     else:
         st.error("Matematiksel kısıtlar sağlanamadı. Yem sınırlarını (Maks) artırınız veya rasyona farklı yem materyalleri ekleyiniz.")
