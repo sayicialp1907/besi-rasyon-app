@@ -3,86 +3,46 @@ import pandas as pd
 import pulp
 from fpdf import FPDF
 
-# --- 1. AYARLAR VE KURUMSAL / PETROL MAVİSİ TASARIM (CSS) ---
+# --- 1. AYARLAR VE TASARIM (CSS) ---
 st.set_page_config(page_title="Profesyonel Rasyon Optimizasyonu", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown("""
     <style>
-    /* 1. Sayfa Arka Planı (Petrol Mavisi) */
     .stApp { background-color: #0B3C49 !important; }
-    
-    /* 2. Yazı Renkleri ve Akademik Font */
-    html, body, p, h1, h2, h3, h4, h5, h6, span, label, div, .stToggle label {
+    html, body, p, h1, h2, h3, h4, h5, h6, span, label, div {
         color: #F8F9FA !important;
         font-family: 'Times New Roman', Times, serif !important;
     }
-    
-    /* 3. Kurumsal Üst Menü Çubuğu */
     .kurumsal-menu {
-        background-color: #06222A;
-        padding: 30px;
-        text-align: center;
-        border-bottom: 5px solid #D4AF37;
-        margin-top: -80px;
-        padding-top: 80px;
-        margin-bottom: 40px;
+        background-color: #06222A; padding: 30px; text-align: center;
+        border-bottom: 5px solid #D4AF37; margin-top: -80px; padding-top: 80px; margin-bottom: 30px;
     }
-    .kurumsal-menu h1 {
-        font-size: 32px !important;
-        letter-spacing: 2px;
-        margin: 0;
-        text-transform: uppercase;
-        color: #FFFFFF !important;
-    }
-    .kurumsal-menu p {
-        font-size: 16px !important;
-        color: #A9BCC1 !important;
-        margin-top: 10px;
-    }
-    
-    /* 4. Çizgiler */
-    hr { border-top: 2px solid #D4AF37 !important; margin: 30px 0 !important; }
-    
-    /* 5. Girdi Kutuları */
-    input, select, .stSelectbox > div > div {
-        background-color: #124B5A !important;
-        color: white !important;
-        border: 1px solid #4A7A89 !important;
-        border-radius: 0px !important; 
-    }
-    
-    /* 6. Buton Tasarımı */
+    .kurumsal-menu h1 { font-size: 32px !important; letter-spacing: 2px; margin: 0; text-transform: uppercase; color: #FFFFFF !important; }
+    .kurumsal-menu p { font-size: 16px !important; color: #A9BCC1 !important; margin-top: 10px; }
+    hr { border-top: 2px solid #D4AF37 !important; margin: 20px 0 !important; }
+    input, select, .stSelectbox > div > div { background-color: #124B5A !important; color: white !important; border: 1px solid #4A7A89 !important; border-radius: 0px !important; }
     div.stButton > button:first-child { 
-        background-color: #D4AF37 !important;
-        color: #000000 !important;
-        border: none !important;
-        border-radius: 0px !important;
-        font-size: 20px !important;
-        font-weight: bold !important;
-        height: 60px;
-        width: 100%;
-        text-transform: uppercase;
+        background-color: #D4AF37 !important; color: #000000 !important; border: none !important; border-radius: 0px !important;
+        font-size: 18px !important; font-weight: bold !important; height: 60px; width: 100%; text-transform: uppercase;
     }
     div.stButton > button:first-child:hover { background-color: #B3912A !important; }
-    
-    /* 7. Tablo (DataFrame) */
     [data-testid="stDataFrame"] { background-color: #124B5A !important; }
     
-    /* Eğitim Modu Anahtarı (Toggle) Vurgusu */
-    [data-testid="stCheckbox"] { background-color: #124B5A; padding: 10px; border-left: 4px solid #D4AF37; }
+    /* Finansal metrikleri öne çıkarma */
+    .finans-kutu { background-color: #124B5A; padding: 15px; border-left: 5px solid #22C55E; margin-bottom: 15px; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. KURUMSAL BAŞLIK ---
+# --- 2. KURUMSAL MENÜ ÇUBUĞU ---
 st.markdown("""
     <div class="kurumsal-menu">
         <img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/Vet_symbol.svg" style="width: 80px; margin-bottom: 10px; filter: brightness(0) invert(1);">
         <h1>VETERİNER KLİNİK RASYON SİSTEMİ</h1>
-        <p>Optimizasyon, Ekonomik Projeksiyon ve Teşhis Asistanı (FAZ 1)</p>
+        <p>Büyükbaş Hayvan Besleme, Optimizasyon ve Finansal Projeksiyon Modülü v2.1</p>
     </div>
 """, unsafe_allow_html=True)
 
-# --- 3. OTOMATİK VERİTABANI ---
+# --- 3. OTOMATİK DEV YEM VERİTABANI ---
 EKSIKSIZ_YEM_LISTESI = """yem_adi,yem_grubu,kuru_madde_yuzde,ham_protein_yuzde,me_mcal_kg,kalsiyum_yuzde,fosfor_yuzde,ndf_yuzde,endf_yuzde,fiyat_tl
 Misir Silaji,Sulu Kaba Yem,30.0,8.0,2.4,0.25,0.20,45.0,35.0,2.0
 Yonca Kuru Otu,Kuru Kaba Yem,88.0,16.0,2.1,1.50,0.25,40.0,38.0,5.5
@@ -112,63 +72,59 @@ with open("yem_veritabani.csv", "w", encoding="utf-8") as f: f.write(EKSIKSIZ_YE
 df_yem_ham = pd.read_csv("yem_veritabani.csv")
 df_yem_ham['min_kg'] = 0.0; df_yem_ham['maks_kg'] = 15.0
 
-# --- 4. GELİŞMİŞ KLİNİK ANALİZ VE PDF ---
+# --- 4. KLİNİK ASİSTAN VE PDF FONKSİYONLARI (UnicodeEncode Hataları Giderildi) ---
 def tr2eng(text):
-    for k, v in {'ı':'i', 'ş':'s', 'ğ':'g', 'ç':'c', 'ö':'o', 'ü':'u', 'İ':'I', 'Ş':'S', 'Ğ':'G', 'Ç':'C', 'Ö':'O', 'Ü':'U'}.items(): 
-        text = str(text).replace(k, v)
-    return text
+    text = str(text)
+    chars = {'ı':'i', 'ş':'s', 'ğ':'g', 'ç':'c', 'ö':'o', 'ü':'u', 'İ':'I', 'Ş':'S', 'Ğ':'G', 'Ç':'C', 'Ö':'O', 'Ü':'U'}
+    for k, v in chars.items(): 
+        text = text.replace(k, v)
+    # PDF motorunun çökmemesi için latin-1 dışı tüm gizli karakterleri güvenli bir şekilde siler/değiştirir.
+    return text.encode('latin-1', 'replace').decode('latin-1')
 
-# YENİ: EĞİTİM VE REÇETE DESTEKLİ RİSK ANALİZİ
 def risk_analizi(r_km, r_ndf, r_ca, r_p, r_me, i_me, r_hp, i_hp, egitim_modu):
     riskler = []
     ndf_orani = (r_ndf / r_km) * 100 if r_km > 0 else 0
     ca_p_orani = r_ca / r_p if r_p > 0 else 0
     
     if ndf_orani < 28: 
-        msg = "⚠️ ASİDOZ RİSKİ: Rasyondaki kaba yem (NDF) yetersiz."
-        if egitim_modu: msg += "\n📖 ETİYOLOJİ: Yetersiz fiziksel yapı (eNDF), ruminasyonu azaltarak tükürükle gelen bikarbonat tamponlamasını engeller. Laktik asit birikimi sekonder laminitise yol açar."
-        msg += "\n💊 REÇETE: Acilen hayvan başı 100-150g Sodyum Bikarbonat (Mide Tamponu) ekleyiniz."
-        riskler.append(msg)
+        mesaj = "ASİDOZ RİSKİ: Kaba yem (NDF) yetersiz."
+        if egitim_modu: mesaj += "\n[EĞİTİM NOTU]: Etkin NDF eksikliği rumen motilitesini (kasılmaları) düşürür ve tükürük salgısını azaltır. Düşük pH (Asidoz) laktik asit birikimi yaratarak laminitise (tırnak iltihabı) yol açar.\n[KLİNİK REÇETE]: Rasyona hayvan başı 100-150 gr Sodyum Bikarbonat (Mide Tamponu) ve canlı maya eklenmesi elzemdir."
+        riskler.append(mesaj)
         
     if 0 < ca_p_orani < 1.2: 
-        msg = "⚠️ ÜROLİTİYAZİS RİSKİ: Ca/P oranı çok düşük (1.2 altı)."
-        if egitim_modu: msg += "\n📖 ETİYOLOJİ: Yüksek fosfor, böbreklerden atılımı artırır ve alkali idrarda magnezyum amonyum fosfat (strüvit) kristallerinin çökelmesini tetikler."
-        msg += "\n💊 REÇETE: Rasyondaki kepek gibi fosforca zengin yemleri azaltıp, Mermer Tozu (Ca) ilave ediniz."
-        riskler.append(msg)
+        mesaj = "ÜROLİTİYAZİS RİSKİ: Ca/P oranı %1.2'nin altında."
+        if egitim_modu: mesaj += "\n[EĞİTİM NOTU]: Fosforun kalsiyuma oranla yüksek olması, özellikle erkek besilerde üretrada strüvit (magnezyum amonyum fosfat) kristalleri ve tıkanmalara neden olur.\n[KLİNİK REÇETE]: Rasyondaki kepek azaltılmalı veya kalsiyum kaynağı (Mermer Tozu) artırılmalıdır."
+        riskler.append(mesaj)
     elif ca_p_orani > 3.0: 
-        msg = "⚠️ MİNERAL BLOKAJI RİSKİ: Aşırı Kalsiyum emilimi bozuyor."
-        if egitim_modu: msg += "\n📖 ETİYOLOJİ: Bağırsaklarda aşırı kalsiyum, çinko ve fosfor gibi diğer iz minerallerle kompleks oluşturarak emilimlerini antagonize eder."
-        riskler.append(msg)
+        mesaj = "MİNERAL BLOKAJI RİSKİ: Aşırı Kalsiyum emilimi bozuyor."
+        if egitim_modu: mesaj += "\n[EĞİTİM NOTU]: Rasyonda aşırı kalsiyum bulunması bağırsaklarda sabunlaşmaya yol açar, Çinko ve Bakır gibi iz elementlerin emilimini bloke eder."
+        riskler.append(mesaj)
         
     if r_hp > (i_hp * 1.15): 
-        msg = "⚠️ HEPATİK STRES: Fazla protein verildi. Karaciğer yorulabilir."
-        if egitim_modu: msg += "\n📖 ETİYOLOJİ: Aşırı rumen yıkımlanabilir protein (RDP), yüksek amonyak üretimine neden olur. Amonyağın üreye çevrilmesi karaciğeri yorar ve enerji tüketir."
-        riskler.append(msg)
+        mesaj = "HEPATİK STRES: Fazla protein verildi."
+        if egitim_modu: mesaj += "\n[EĞİTİM NOTU]: Rumende amonyağa dönüşen aşırı protein, karaciğerde üreye çevrilirken ekstra enerji harcatır (BUN yükselmesi). Hepatik (karaciğer) yorgunluk ve fertilite düşüşü görülür."
+        riskler.append(mesaj)
         
     if r_me > (i_me * 1.15): 
-        msg = "⚠️ KARACİĞER YAĞLANMASI: Aşırı enerji yüklemesi mevcut."
-        if egitim_modu: msg += "\n📖 ETİYOLOJİ: Vücut kapasitesinin üzerinde alınan enerji, karaciğerde lipit birikimine ve metabolik sendroma zemin hazırlar."
-        riskler.append(msg)
+        mesaj = "KARACİĞER YAĞLANMASI: Aşırı enerji yüklemesi mevcut."
+        if egitim_modu: mesaj += "\n[EĞİTİM NOTU]: Hayvanın kapasitesinin üzerinde enerji (ME) verilmesi, fazla glikozun karaciğerde trigliserit olarak depolanmasına ve ketozis riskine kapı aralar."
+        riskler.append(mesaj)
         
-    if not riskler: 
-        msg = "✅ RASYON GÜVENLİ: Klinik parametreler fizyolojik sınırlar içerisindedir."
-        if egitim_modu: msg += "\n📖 NOT: Rasyon dengesi, rumen mikroflorası ve asit-baz dengesi için optimal aralıktadır."
-        riskler.append(msg)
-        
+    if not riskler: riskler.append("RASYON GÜVENLİ: Klinik parametreler fizyolojik sınırlar içerisindedir.")
     return riskler
 
-def create_pdf(h_tipi, h_irk, h_kg, h_hedef, h_sure, h_adg, maliyet, kesim_fiyati, yem_df, r_ca, r_p, r_ndf, r_km, riskler):
+def create_pdf(h_tipi, h_irk, h_kg, h_hedef, h_sure, h_adg, maliyet, net_kar, yem_df, r_ca, r_p, r_ndf, r_km, riskler):
     pdf = FPDF(); pdf.add_page()
     pdf.set_fill_color(11, 60, 73); pdf.set_text_color(255, 255, 255); pdf.set_font("Arial", 'B', 15)
-    pdf.cell(0, 15, txt=tr2eng("KLINIK RASYON VE EKONOMIK PROJEKSIYON RAPORU"), ln=True, align='C', fill=True); pdf.ln(5)
+    pdf.cell(0, 15, txt=tr2eng("KLINIK RASYON VE OPTIMIZASYON RAPORU"), ln=True, align='C', fill=True); pdf.ln(5)
     
     pdf.set_text_color(0, 0, 0); pdf.set_fill_color(240, 240, 240); pdf.set_font("Arial", 'B', 12)
-    pdf.cell(0, 10, txt=tr2eng("  BÖLÜM 1: Spesifikasyonlar"), ln=True, fill=True); pdf.set_font("Arial", '', 11)
-    pdf.cell(0, 8, txt=tr2eng(f"  Tip/Irk: {h_tipi} - {h_irk}  |  Mevcut: {h_kg} kg -> Hedef: {h_hedef} kg"), ln=True)
-    pdf.cell(0, 8, txt=tr2eng(f"  Besi Suresi: {h_sure} Gun  |  Hesaplanan ADG: {h_adg} kg/gun"), ln=True); pdf.ln(5)
+    pdf.cell(0, 10, txt=tr2eng("  BÖLÜM 1: Spesifikasyonlar ve Finansal Projeksiyon"), ln=True, fill=True); pdf.set_font("Arial", '', 11)
+    pdf.cell(0, 8, txt=tr2eng(f"  Irk: {h_irk}  |  Mevcut: {h_kg} kg -> Hedef: {h_hedef} kg  |  Besi Suresi: {h_sure} Gun"), ln=True)
+    pdf.cell(0, 8, txt=tr2eng(f"  Gunluk Yem Maliyeti: {round(maliyet,2)} TL  |  Tahmini Donem Sonu NET KAR: {round(net_kar,2)} TL"), ln=True); pdf.ln(5)
     
     pdf.set_font("Arial", 'B', 12); pdf.set_fill_color(212, 175, 55); pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 10, txt=tr2eng("  BÖLÜM 2: Yem Bilesimi (kg/gun)"), ln=True, fill=True)
+    pdf.cell(0, 10, txt=tr2eng("  BÖLÜM 2: Tavsiye Edilen Yem Bilesimi (kg/gun)"), ln=True, fill=True)
     pdf.set_text_color(0, 0, 0); pdf.set_font("Arial", '', 11); pdf.set_fill_color(250, 250, 250)
     for index, row in yem_df.iterrows():
         kg = row.get('Önerilen Miktar (kg)', 0)
@@ -177,24 +133,20 @@ def create_pdf(h_tipi, h_irk, h_kg, h_hedef, h_sure, h_adg, maliyet, kesim_fiyat
             pdf.cell(40, 8, txt=f"{round(kg, 2)} kg", border='B', ln=True, align='R', fill=True)
     pdf.ln(5)
     
-    # YENİ PDF BÖLÜMÜ: EKONOMİ
-    toplam_maliyet = maliyet * h_sure
-    deger_artisi = (h_hedef - h_kg) * kesim_fiyati
-    net_kar = deger_artisi - toplam_maliyet
-    
-    pdf.set_font("Arial", 'B', 12); pdf.set_fill_color(240, 240, 240); pdf.cell(0, 10, txt=tr2eng("  BÖLÜM 3: Ekonomik Projeksiyon"), ln=True, fill=True)
-    pdf.set_font("Arial", '', 11)
-    pdf.cell(0, 8, txt=tr2eng(f"  Gunluk Maliyet: {round(maliyet, 2)} TL  |  Besi Sonu Toplam Yem Maliyeti: {round(toplam_maliyet, 2)} TL"), ln=True)
-    pdf.cell(0, 8, txt=tr2eng(f"  Canli Kilo Artis Degeri: {round(deger_artisi, 2)} TL  |  TAHMINI NET KAR: {round(net_kar, 2)} TL"), ln=True); pdf.ln(5)
-    
-    pdf.set_font("Arial", 'B', 12); pdf.set_fill_color(220, 38, 38); pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 10, txt=tr2eng("  BÖLÜM 4: Klinik Bulgular"), ln=True, fill=True)
-    pdf.set_text_color(0, 0, 0); pdf.set_font("Arial", '', 10)
-    for risk in riskler: pdf.multi_cell(0, 6, txt=tr2eng(f"{risk}"), border='B')
+    pdf.set_font("Arial", 'B', 12); pdf.set_fill_color(240, 240, 240); pdf.cell(0, 10, txt=tr2eng("  BÖLÜM 3: Bulgular, Risk Analizi ve Receteler"), ln=True, fill=True)
+    pdf.set_font("Arial", '', 11); pdf.cell(100, 8, txt=tr2eng(f"   Ca/P: {round(r_ca/r_p,2) if r_p>0 else 0} | Kuru Maddede NDF: %{round((r_ndf/r_km)*100,1) if r_km>0 else 0}"), ln=True)
+    pdf.set_text_color(220, 38, 38)
+    for risk in riskler: pdf.multi_cell(0, 8, txt=tr2eng(f"- {risk}"), border='B')
     return pdf.output(dest='S').encode('latin-1')
 
-# --- 5. ARAYÜZ ---
-st.markdown("### BÖLÜM I: HAYVAN, ÇEVRE VE EKONOMİK HEDEFLER")
+# --- 5. ARAYÜZ TASARIMI ---
+
+st.markdown("### BÖLÜM I: HAYVAN MATERYALİ VE ÇEVRESEL FAKTÖRLER")
+
+# ÖĞRENCİ MODU BUTONU (FAZ 1)
+ogrenci_modu = st.toggle("🎓 Akademik Eğitim ve Klinik Reçete Modunu Aktifleştir (Asistan / Öğrenci Asistanı)")
+st.caption("Aktifleştirildiğinde, saptanan klinik risklerin patofizyolojisi ve premiks ekleme tavsiyeleri (Bikarbonat vb.) gösterilir.")
+
 col_hayvan, col_cevre = st.columns(2)
 
 with col_hayvan:
@@ -203,23 +155,22 @@ with col_hayvan:
     col_y, col_k = st.columns(2)
     yas = col_y.number_input("Yaşı (Ay)", value=16, min_value=1)
     kondisyon = col_k.number_input("Kondisyon Skoru", value=5.0, min_value=1.0, max_value=5.0, step=0.5)
+
+with col_cevre:
+    col_a1, col_a2 = st.columns(2)
+    canli_agirlik = col_a1.number_input("Mevcut Vücut Ağırlığı (kg)", value=300, step=10)
+    hedef_agirlik = col_a2.number_input("Hedef Ağırlık (kg)", value=350, step=10)
     
-    st.markdown("<br>", unsafe_allow_html=True)
+    col_b1, col_b2 = st.columns(2)
+    besi_suresi = col_b1.number_input("Besi Süresi (Gün)", value=30, step=1)
+    kesim_fiyati = col_b2.number_input("Canlı Kilo Kesim Fiyatı (TL/kg)", value=250, step=10)
+    
+    adg = round((hedef_agirlik - canli_agirlik) / besi_suresi, 3) if (besi_suresi > 0 and hedef_agirlik > canli_agirlik) else 0.0
+    st.info(f"Hedeflenen Günlük Ağırlık Artışı (ADG): **{adg} kg/gün**")
+    
     col_c1, col_c2 = st.columns(2)
     sicaklik = col_c1.number_input("Mevcut Sıcaklık (°C)", value=18.0)
     camur = col_c2.selectbox("Zemin Çamur Faktörü", ["Yok", "Bileğe Kadar", "Dize Kadar"])
-
-with col_cevre:
-    canli_agirlik = st.number_input("Mevcut Vücut Ağırlığı (kg)", value=300, step=10)
-    col_h1, col_h2 = st.columns(2)
-    hedef_agirlik = col_h1.number_input("Hedef Ağırlık (kg)", value=350, step=10)
-    besi_suresi = col_h2.number_input("Besi Süresi (Gün)", value=30, step=1)
-    
-    adg = round((hedef_agirlik - canli_agirlik) / besi_suresi, 3) if (besi_suresi > 0 and hedef_agirlik > canli_agirlik) else 0.0
-    st.info(f"Hesaplanan Ortalama Günlük Ağırlık Artışı (ADG): **{adg} kg/gün**")
-    
-    # YENİ EKONOMİ GİRDİSİ
-    kesim_fiyati = st.number_input("Beklenen Canlı Kilo Kesim Fiyatı (TL/kg)", value=250.0, step=10.0)
 
 st.markdown("---")
 
@@ -250,9 +201,6 @@ df_secilen['maks_kg'] = duzenlenen_gorunum['maks_kg']
 
 st.markdown("---")
 
-# YENİ: EĞİTİM MODU TOGGLE
-egitim_modu = st.toggle("🎓 Öğrenci / Akademik Eğitim Modunu Aktifleştir (Hastalık Etiyolojisi ve Patogenezi Açıklar)")
-
 # --- HESAPLAMALAR ---
 ihtiyac_km = round((canli_agirlik * 0.015) + (adg * 2.3) + 0.02, 1)
 ihtiyac_hp = round((canli_agirlik * 1.5) + (adg * 240), 0)
@@ -268,7 +216,7 @@ ihtiyac_ndf_min = round(ihtiyac_km * 0.28, 1)
 btn_coz = st.button("LİNEER PROGRAMLAMA İLE OPTİMİZASYONU BAŞLAT")
 
 if btn_coz:
-    st.markdown("### BÖLÜM III: OPTİMİZASYON, EKONOMİ VE KLİNİK BULGULAR")
+    st.markdown("### BÖLÜM III: BULGULAR, FİNANSAL PROJEKSİYON VE RİSK ANALİZİ")
     prob = pulp.LpProblem("Rasyon", pulp.LpMinimize)
     yem_vars = [pulp.LpVariable(f"yem_{i}", lowBound=row['min_kg'], upBound=row['maks_kg']) for i, row in df_secilen.iterrows()]
     
@@ -295,29 +243,47 @@ if btn_coz:
             rasyon_ndf += km_k * (df_secilen.loc[i, 'ndf_yuzde'] / 100)
             maliyet += kg * df_secilen.loc[i, 'fiyat_tl']
             
-        col_tablo, col_risk = st.columns([1, 1.2])
+        # FAZ 1 FİNANSAL HESAPLAMALAR
+        kazanilan_kilo = hedef_agirlik - canli_agirlik if hedef_agirlik > canli_agirlik else 0
+        toplam_yem_masrafi = maliyet * besi_suresi
+        brut_gelir = kazanilan_kilo * kesim_fiyati
+        net_kar = brut_gelir - toplam_yem_masrafi
+            
+        col_tablo, col_risk = st.columns([1.2, 1])
         with col_tablo:
-            st.markdown(f"<h4 style='color:#D4AF37;'>Ekonomik Projeksiyon</h4>", unsafe_allow_html=True)
-            toplam_maliyet = maliyet * besi_suresi
-            deger_artisi = (hedef_agirlik - canli_agirlik) * kesim_fiyati
-            net_kar = deger_artisi - toplam_maliyet
+            st.markdown(f"""
+            <div class='finans-kutu'>
+                <h4 style='margin:0; color:#F8F9FA;'>Ekonomik Projeksiyon ({besi_suresi} Gün)</h4>
+                <p style='margin:5px 0 0 0;'>Günlük Rasyon Maliyeti: <b>{round(maliyet,2)} TL</b></p>
+                <p style='margin:0;'>Toplam Yem Yatırımı: <b>{round(toplam_yem_masrafi,2)} TL</b></p>
+                <p style='margin:0;'>Canlı Kilo Değer Artışı: <b>{round(brut_gelir,2)} TL</b></p>
+                <h3 style='margin:10px 0 0 0; color:#D4AF37;'>Tahmini Net Kâr: {round(net_kar,2)} TL</h3>
+            </div>
+            """, unsafe_allow_html=True)
             
-            st.write(f"**Günlük Hayvan Başı Maliyet:** {round(maliyet,2)} TL")
-            st.write(f"**Besi Sonu Toplam Yem Maliyeti:** {round(toplam_maliyet,2)} TL")
-            st.write(f"**Sağlanan Canlı Kilo Değeri:** {round(deger_artisi,2)} TL")
-            st.markdown(f"<h5 style='color:#10B981;'>Tahmini Hayvan Başı Net Kâr: {round(net_kar,2)} TL</h5>", unsafe_allow_html=True)
+            st.markdown("**Besin Madde Karşılama Tablosu**")
+            denge_df = pd.DataFrame({
+                "Parametre": ["Kuru Madde(kg)", "Protein(g)", "Enerji(Mcal)", "Ca(g)", "P(g)", "NDF(kg)"],
+                "İhtiyaç Edilen": [ihtiyac_km, ihtiyac_hp, ihtiyac_me, ihtiyac_ca, ihtiyac_p, ihtiyac_ndf_min],
+                "Rasyonda Bulunan": [round(rasyon_km,1), round(rasyon_hp,0), round(rasyon_me,1), round(rasyon_ca,1), round(rasyon_p,1), round(rasyon_ndf,1)]
+            })
+            st.table(denge_df)
             
-            st.markdown("**Optimize Edilmiş Yem Miktarları**")
+            st.markdown("**Optimize Edilmiş Yem Miktarları (kg)**")
             st.dataframe(df_secilen[df_secilen['Önerilen Miktar (kg)'] > 0][['yem_adi', 'Önerilen Miktar (kg)']], use_container_width=True, hide_index=True)
 
         with col_risk:
-            st.markdown(f"<h4 style='color:#D4AF37;'>Klinik Bulgular ve Teşhis</h4>", unsafe_allow_html=True)
-            saptanan_riskler = risk_analizi(rasyon_km, rasyon_ndf, rasyon_ca, rasyon_p, rasyon_me, ihtiyac_me, rasyon_hp, ihtiyac_hp, egitim_modu)
+            st.markdown(f"<h4 style='color:#D4AF37;'>Klinik Patoloji & Risk Analizi</h4>", unsafe_allow_html=True)
+            saptanan_riskler = risk_analizi(rasyon_km, rasyon_ndf, rasyon_ca, rasyon_p, rasyon_me, ihtiyac_me, rasyon_hp, ihtiyac_hp, ogrenci_modu)
             for r in saptanan_riskler:
                 if "GÜVENLİ" in r: st.success(r)
-                else: st.warning(r)
+                else: 
+                    if ogrenci_modu: st.error(r.replace("\n", "\n\n"))
+                    else: st.warning(r)
             
-            pdf_bytes = create_pdf(hayvan_tipi, irk, canli_agirlik, hedef_agirlik, besi_suresi, adg, maliyet, kesim_fiyati, df_secilen, rasyon_ca, rasyon_p, rasyon_ndf, rasyon_km, saptanan_riskler)
-            st.download_button("TÜM RAPORU PDF OLARAK İNDİR", data=pdf_bytes, file_name="Rasyon_Raporu.pdf", mime="application/pdf", type="primary", use_container_width=True)
+            st.info(f"Ca/P Oranı: {round(rasyon_ca/rasyon_p,2) if rasyon_p>0 else 0} | Kuru Maddede NDF: %{round((rasyon_ndf/rasyon_km)*100,1) if rasyon_km>0 else 0}")
+            
+            pdf_bytes = create_pdf(hayvan_tipi, irk, canli_agirlik, hedef_agirlik, besi_suresi, adg, maliyet, net_kar, df_secilen, rasyon_ca, rasyon_p, rasyon_ndf, rasyon_km, saptanan_riskler)
+            st.download_button("SONUÇLARI PDF OLARAK İNDİR", data=pdf_bytes, file_name="Finans_ve_Klinik_Rapor.pdf", mime="application/pdf", type="primary", use_container_width=True)
     else:
         st.error("Matematiksel kısıtlar sağlanamadı. Yem sınırlarını (Maks) artırınız veya rasyona farklı yem materyalleri ekleyiniz.")
